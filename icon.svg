@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0a1a"/>
+      <stop offset="100%" stop-color="#1a0a2e"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00d4ff"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+    <filter id="blur" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="128" fill="url(#bg)"/>
+  <circle cx="256" cy="256" r="160" fill="none" stroke="url(#glow)" stroke-width="24" opacity="0.3" filter="url(#blur)"/>
+  <circle cx="256" cy="256" r="140" fill="none" stroke="url(#glow)" stroke-width="12"/>
+  <text x="256" y="296" font-family="system-ui, -apple-system, sans-serif" font-size="200" font-weight="700" fill="url(#glow)" text-anchor="middle">Q</text>
+  <circle cx="360" cy="360" r="16" fill="#00ff88"/>
+</svg>

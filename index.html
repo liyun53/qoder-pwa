@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#050508">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="小Q">
+  <meta name="description" content="QoderWork 移动端快捷入口">
+  <title>QoderWork Mobile</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <style>
+    :root {
+      --bg-deep: #020205;
+      --bg-base: #050508;
+      --bg-surface: rgba(255, 255, 255, 0.04);
+      --bg-surface-hover: rgba(255, 255, 255, 0.08);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-glow: rgba(0, 212, 255, 0.25);
+      --text-primary: #f0f0f5;
+      --text-secondary: #8888a0;
+      --accent-cyan: #00d4ff;
+      --accent-purple: #a855f7;
+      --accent-green: #00ff88;
+      --accent-pink: #ff3388;
+      --shadow-cyan: 0 0 20px rgba(0, 212, 255, 0.15);
+      --shadow-purple: 0 0 20px rgba(168, 85, 247, 0.15);
+      --radius: 20px;
+      --radius-sm: 14px;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-top: env(safe-area-inset-top, 0px);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      height: 100%;
+      background: var(--bg-base);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      overflow: hidden;
+      touch-action: manipulation;
+    }
+
+    /* Background Grid + Particles */
+    .bg-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .grid {
+      position: absolute;
+      inset: -50%;
+      background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 49px, rgba(0, 212, 255, 0.04) 50px),
+        repeating-linear-gradient(90deg, transparent, transparent 49px, rgba(0, 212, 255, 0.04) 50px);
+      background-size: 50px 50px;
+      transform: perspective(500px) rotateX(60deg);
+      animation: gridMove 20s linear infinite;
+    }
+    @keyframes gridMove {
+      0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
+      100% { transform: perspective(500px) rotateX(60deg) translateY(50px); }
+    }
+    .glow-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.35;
+      animation: orbFloat 10s ease-in-out infinite alternate;
+    }
+    .glow-orb.cyan { width: 300px; height: 300px; background: var(--accent-cyan); top: 10%; left: -10%; animation-delay: 0s; }
+    .glow-orb.purple { width: 250px; height: 250px; background: var(--accent-purple); bottom: 20%; right: -10%; animation-delay: -3s; }
+    @keyframes orbFloat {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(30px, -30px) scale(1.1); }
+    }
+
+    /* App Shell */
+    .app {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      height: 100dvh;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: calc(12px + var(--safe-top)) 20px 12px;
+      background: linear-gradient(to bottom, rgba(5,5,8,0.9), transparent);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 18px;
+      color: var(--bg-deep);
+      box-shadow: var(--shadow-cyan);
+    }
+    .brand-text {
+      font-size: 18px; font-weight: 600;
+      background: linear-gradient(135deg, var(--text-primary), var(--accent-cyan));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .status {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--text-secondary);
+      background: var(--bg-surface);
+      padding: 6px 12px; border-radius: 20px;
+      border: 1px solid var(--border);
+    }
+    .status-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--accent-green);
+      box-shadow: 0 0 8px var(--accent-green);
+      animation: breathe 2s ease-in-out infinite;
+    }
+    @keyframes breathe {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    /* Main Content */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 16px 20px;
+      scroll-behavior: smooth;
+    }
+    .main::-webkit-scrollbar { display: none; }
+
+    /* Welcome Section */
+    .welcome {
+      margin: 20px 0 28px;
+      animation: fadeUp 0.6s ease-out both;
+    }
+    .welcome h1 {
+      font-size: 28px; font-weight: 700;
+      line-height: 1.3;
+      background: linear-gradient(135deg, #fff, var(--accent-cyan));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .welcome p {
+      margin-top: 8px; font-size: 15px; color: var(--text-secondary); line-height: 1.5;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Quick Action Button */
+    .quick-action {
+      display: flex; align-items: center; gap: 14px;
+      padding: 18px 20px;
+      background: linear-gradient(135deg, rgba(0,212,255,0.12), rgba(168,85,247,0.12));
+      border: 1px solid var(--border-glow);
+      border-radius: var(--radius);
+      margin-bottom: 24px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      animation: fadeUp 0.6s 0.1s ease-out both;
+      backdrop-filter: blur(12px);
+    }
+    .quick-action:active { transform: scale(0.98); }
+    .quick-action-icon {
+      width: 48px; height: 48px; border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; flex-shrink: 0;
+      box-shadow: var(--shadow-cyan);
+    }
+    .quick-action-text h3 { font-size: 16px; font-weight: 600; }
+    .quick-action-text p { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+    .quick-action-arrow { margin-left: auto; color: var(--accent-cyan); font-size: 18px; }
+
+    /* Section Title */
+    .section-title {
+      font-size: 13px; font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 14px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .section-title::after {
+      content: ''; flex: 1; height: 1px;
+      background: linear-gradient(to right, var(--border), transparent);
+    }
+
+    /* Card Grid */
+    .card-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 18px 16px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+      animation: fadeUp 0.6s ease-out both;
+    }
+    .card:nth-child(1) { animation-delay: 0.15s; }
+    .card:nth-child(2) { animation-delay: 0.2s; }
+    .card:nth-child(3) { animation-delay: 0.25s; }
+    .card:nth-child(4) { animation-delay: 0.3s; }
+    .card::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+      opacity: 0; transition: opacity 0.25s ease;
+    }
+    .card:hover, .card:active {
+      background: var(--bg-surface-hover);
+      border-color: var(--border-glow);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-cyan);
+    }
+    .card:hover::before, .card:active::before { opacity: 0.04; }
+    .card-icon {
+      width: 40px; height: 40px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; margin-bottom: 12px;
+      position: relative; z-index: 1;
+    }
+    .card-icon.cyan { background: rgba(0,212,255,0.12); }
+    .card-icon.purple { background: rgba(168,85,247,0.12); }
+    .card-icon.green { background: rgba(0,255,136,0.12); }
+    .card-icon.pink { background: rgba(255,51,136,0.12); }
+    .card h3 {
+      font-size: 15px; font-weight: 600;
+      position: relative; z-index: 1;
+    }
+    .card p {
+      font-size: 12px; color: var(--text-secondary); margin-top: 4px; line-height: 1.4;
+      position: relative; z-index: 1;
+    }
+
+    /* Feature List (for Features page) */
+    .feature-list { display: flex; flex-direction: column; gap: 12px; }
+    .feature-item {
+      display: flex; align-items: center; gap: 14px;
+      padding: 16px; background: var(--bg-surface);
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      cursor: pointer; transition: all 0.2s ease;
+    }
+    .feature-item:active { transform: scale(0.98); }
+    .feature-item:hover { border-color: var(--border-glow); }
+    .feature-item-icon { font-size: 24px; width: 44px; text-align: center; flex-shrink: 0; }
+    .feature-item-text h4 { font-size: 15px; font-weight: 600; }
+    .feature-item-text p { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+    .feature-item-chevron { margin-left: auto; color: var(--text-secondary); }
+
+    /* Settings */
+    .settings-group { margin-bottom: 24px; }
+    .settings-group-title {
+      font-size: 13px; font-weight: 600; color: var(--text-secondary);
+      margin-bottom: 10px; padding-left: 4px;
+    }
+    .settings-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px; background: var(--bg-surface);
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      margin-bottom: 10px;
+    }
+    .settings-item-label { font-size: 15px; }
+    .settings-item-value { font-size: 14px; color: var(--text-secondary); }
+    .settings-item-btn {
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+      color: var(--bg-deep); border: none; border-radius: 8px;
+      padding: 8px 16px; font-size: 14px; font-weight: 600; cursor: pointer;
+    }
+    .settings-item-btn:active { opacity: 0.8; }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: calc(80px + var(--safe-bottom)); left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(30,30,40,0.95); color: var(--text-primary);
+      padding: 12px 24px; border-radius: 12px;
+      border: 1px solid var(--border-glow);
+      font-size: 14px; opacity: 0; pointer-events: none;
+      transition: all 0.3s ease; z-index: 100;
+      backdrop-filter: blur(12px);
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* Bottom Nav */
+    .nav {
+      display: flex; justify-content: space-around; align-items: center;
+      padding: 10px 0 calc(10px + var(--safe-bottom));
+      background: rgba(5,5,8,0.85);
+      backdrop-filter: blur(20px) saturate(1.5);
+      border-top: 1px solid var(--border);
+      z-index: 10;
+    }
+    .nav-item {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      background: none; border: none; color: var(--text-secondary);
+      font-size: 11px; cursor: pointer; padding: 4px 16px;
+      transition: color 0.2s ease;
+    }
+    .nav-item.active { color: var(--accent-cyan); }
+    .nav-item span { font-size: 22px; }
+
+    /* Page transitions */
+    .page { display: none; animation: fadeUp 0.3s ease-out; }
+    .page.active { display: block; }
+
+    /* Scrollbar hide for all */
+    ::-webkit-scrollbar { width: 0; background: transparent; }
+  </style>
+</head>
+<body>
+  <div class="bg-layer">
+    <div class="grid"></div>
+    <div class="glow-orb cyan"></div>
+    <div class="glow-orb purple"></div>
+  </div>
+
+  <div class="app">
+    <header class="header">
+      <div class="brand">
+        <div class="brand-icon">Q</div>
+        <div class="brand-text">QoderWork</div>
+      </div>
+      <div class="status">
+        <div class="status-dot"></div>
+        <span>在线</span>
+      </div>
+    </header>
+
+    <main class="main">
+      <!-- Home Page -->
+      <div class="page active" id="page-home">
+        <div class="welcome">
+          <h1>你好，我是小Q</h1>
+          <p>你的智能工作助手，随时待命。有什么可以帮你的吗？</p>
+        </div>
+
+        <div class="quick-action" onclick="showToast('快速对话功能即将上线')">
+          <div class="quick-action-icon">💬</div>
+          <div class="quick-action-text">
+            <h3>快速对话</h3>
+            <p>直接开始与小Q对话</p>
+          </div>
+          <div class="quick-action-arrow">›</div>
+        </div>
+
+        <div class="section-title">快捷功能</div>
+        <div class="card-grid">
+          <div class="card" onclick="showToast('任务中心即将上线')">
+            <div class="card-icon cyan">📋</div>
+            <h3>任务中心</h3>
+            <p>管理和追踪待办事项</p>
+          </div>
+          <div class="card" onclick="showToast('文件助手即将上线')">
+            <div class="card-icon purple">📁</div>
+            <h3>文件助手</h3>
+            <p>快速处理各类文档</p>
+          </div>
+          <div class="card" onclick="showToast('市场速览即将上线')">
+            <div class="card-icon green">📊</div>
+            <h3>市场速览</h3>
+            <p>快速了解市场动态</p>
+          </div>
+          <div class="card" onclick="showToast('日程提醒即将上线')">
+            <div class="card-icon pink">⏰</div>
+            <h3>日程提醒</h3>
+            <p>智能日程管理</p>
+          </div>
+        </div>
+
+        <div class="section-title">最近动态</div>
+        <div class="feature-list">
+          <div class="feature-item" onclick="showToast('暂无新消息')">
+            <div class="feature-item-icon">✨</div>
+            <div class="feature-item-text">
+              <h4>欢迎使用 QoderWork Mobile</h4>
+              <p>这是你的个人智能助手入口</p>
+            </div>
+            <div class="feature-item-chevron">›</div>
+          </div>
+          <div class="feature-item" onclick="showToast('PWA 安装指南：点击浏览器菜单 → 添加到主屏幕')">
+            <div class="feature-item-icon">📱</div>
+            <div class="feature-item-text">
+              <h4>添加到手机桌面</h4>
+              <p>获得最佳使用体验</p>
+            </div>
+            <div class="feature-item-chevron">›</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Features Page -->
+      <div class="page" id="page-features">
+        <div class="welcome">
+          <h1>全部功能</h1>
+          <p>探索小Q的完整能力</p>
+        </div>
+        <div class="feature-list">
+          <div class="feature-item" onclick="showToast('功能开发中')">
+            <div class="feature-item-icon">🤖</div>
+            <div class="feature-item-text">
+              <h4>AI 对话</h4>
+              <p>自然语言交互，解答各类问题</p>
+            </div>
+            <div class="feature-item-chevron">›</div>
+          </div>
+          <div class="feature-item" onclick="showToast('功能开发中')">
+            <div class="feature-item-icon">📄</div>
+            <div class="feature-item-text">
+              <h4>文档处理</h4>
+              <p>PDF、Word、Excel 快速解析</p>
+            </div>
+            <div class="feature-item-chevron">›</div>
+          </div>
+          <div class="feature-item" onclick="showToast('功能开发中')">
+            <div class="feature-item-icon">🔍</div>
+            <div class="feature-item-text">
+              <h4>信息检索</h4>
+              <p>搜索整理网络信息</p>
+            </div>
+            <div class="feature-item-chevron">›</div>
+          </div>
+          <div class="feature-item" onclick="showToast('功能开发中')">
+            <div class="feature-item-icon">⚡</div>
+            <div class="feature-item-text">
+              <h4>自动化脚本</h4>
+              <p>代码生成与任务自动化</p>
+            </div>
+            <div class="feature-item-chevron">›</div>
+          </div>
+          <div class="feature-item" onclick="showToast('功能开发中')">
+            <div class="feature-item-icon">🗓️</div>
+            <div class="feature-item-text">
+              <h4>定时任务</h4>
+              <p>设置提醒和周期性任务</p>
+            </div>
+            <div class="feature-item-chevron">›</div>
+          </div>
+          <div class="feature-item" onclick="showToast('功能开发中')">
+            <div class="feature-item-icon">🔒</div>
+            <div class="feature-item-text">
+              <h4>安全空间</h4>
+              <p>隔离环境处理敏感操作</p>
+            </div>
+            <div class="feature-item-chevron">›</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Page -->
+      <div class="page" id="page-settings">
+        <div class="welcome">
+          <h1>设置</h1>
+          <p>自定义你的使用体验</p>
+        </div>
+        <div class="settings-group">
+          <div class="settings-group-title">关于</div>
+          <div class="settings-item">
+            <div>
+              <div class="settings-item-label">版本</div>
+            </div>
+            <div class="settings-item-value">v1.0.0</div>
+          </div>
+          <div class="settings-item">
+            <div>
+              <div class="settings-item-label">PWA 状态</div>
+            </div>
+            <div class="settings-item-value" id="pwa-status">检查中...</div>
+          </div>
+        </div>
+        <div class="settings-group">
+          <div class="settings-group-title">缓存</div>
+          <div class="settings-item" style="cursor:pointer" onclick="clearCache()">
+            <div class="settings-item-label">清除缓存</div>
+            <button class="settings-item-btn">清除</button>
+          </div>
+        </div>
+        <div class="settings-group">
+          <div class="settings-group-title">提示</div>
+          <div class="settings-item" style="align-items:flex-start">
+            <div>
+              <div class="settings-item-label">如何安装到桌面</div>
+              <p style="font-size:13px;color:var(--text-secondary);margin-top:6px;line-height:1.5">
+                Android Chrome：点击菜单 → 添加到主屏幕<br>
+                iOS Safari：分享按钮 → 添加到主屏幕
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <nav class="nav">
+      <button class="nav-item active" onclick="switchPage('home')">
+        <span>🏠</span>
+        首页
+      </button>
+      <button class="nav-item" onclick="switchPage('features')">
+        <span>⚡</span>
+        功能
+      </button>
+      <button class="nav-item" onclick="switchPage('settings')">
+        <span>⚙️</span>
+        设置
+      </button>
+    </nav>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // Service Worker Registration
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('SW registered:', reg.scope))
+        .catch(err => console.log('SW failed:', err));
+    }
+
+    // Page Switching
+    function switchPage(name) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.getElementById('page-' + name).classList.add('active');
+      event.currentTarget.classList.add('active');
+    }
+
+    // Toast
+    let toastTimer;
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
+    }
+
+    // PWA Status Check
+    function checkPWA() {
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+      document.getElementById('pwa-status').textContent = isStandalone ? '已安装' : '未安装（浏览器中运行）';
+    }
+    checkPWA();
+
+    // Cache Clear
+    async function clearCache() {
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
+        showToast('缓存已清除');
+      } else {
+        showToast('当前环境不支持缓存清除');
+      }
+    }
+
+    // Add to home screen prompt (Android Chrome)
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+    });
+  </script>
+</body>
+</html>
